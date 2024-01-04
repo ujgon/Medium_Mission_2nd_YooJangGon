@@ -18,4 +18,5 @@ public class Post extends BaseTime {
     private String title;
     private String body;
     private boolean published;
+    private boolean isPaid; // true면 유료회원만 볼 수 있느냐의 여부
 }

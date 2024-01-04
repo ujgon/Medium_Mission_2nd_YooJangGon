@@ -1,5 +1,6 @@
 package com.ll.medium.domain.post.post.controller;
 
+import ch.qos.logback.core.model.Model;
 import com.ll.medium.domain.post.post.entity.Post;
 import com.ll.medium.domain.post.post.service.PostService;
 import com.ll.medium.global.rq.Rq.Rq;
@@ -10,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/post")
@@ -29,8 +33,20 @@ public class PostController {
 
     @GetMapping("/{id}")
     @Operation(summary = "글 상세")
-    public String showDetail(@PathVariable long id) {
-        rq.setAttribute("post", postService.findById(id).get());
+    public String showDetail(@PathVariable long id, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean isUserAuthenticated = auth.isAuthenticated();
+
+        boolean hasUserRole = auth.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_USER"));
+
+        String postContent = postService.findPostContentById(id, isUserAuthenticated);
+
+        rq.setAttribute("content", postContent);
+
+        Optional<Post> foundPost = postService.findById(id);
+        model.addText("post");
 
         return "domain/post/post/detail";
     }
@@ -52,3 +68,4 @@ public class PostController {
         return "domain/post/post/list";
     }
 }
+

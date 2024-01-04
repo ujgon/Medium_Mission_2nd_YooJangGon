@@ -118,4 +118,20 @@ public class PostService {
     public <T extends PostListItemDto> Page<T> findByKw(KwTypeV1 kwType, String kw, Member author, Boolean published, Pageable pageable, Class<T> type) {
         return postRepository.findByKw(kwType, kw, author, published, pageable, type);
     }
+
+    public String findPostContentById(long id, boolean isUserAuthenticated) {
+
+        Optional<Post> optionalPost = postRepository.findById(id);
+        if (optionalPost.isPresent()) {
+            Post post = optionalPost.get();
+
+            if (post.isPaid() && !isUserAuthenticated) {
+                return "이 글은 유료 멤버십 전용 입니다.";
+            } else {
+                return post.getBody();
+            }
+        } else {
+            return "해당 글은 존재하지 않습니다.";
+        }
+    }
 }
