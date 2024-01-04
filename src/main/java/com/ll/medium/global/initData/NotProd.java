@@ -25,36 +25,32 @@ public class NotProd {
     @Bean
     @Order(3)
     public ApplicationRunner initNotProd() {
-        return new ApplicationRunner() {
-            @Transactional
-            @Override
-            public void run(ApplicationArguments args) throws Exception {
-                if (memberService.findByUsername("user1").isPresent()) return;
-
-                Member memberUser1 = memberService.join("user1", "1234").getData();
-                memberUser1.setRefreshToken("user1");
-
-                Member memberUser2 = memberService.join("user2", "1234").getData();
-                memberUser2.setRefreshToken("user2");
-
-                Member memberUser3 = memberService.join("user3", "1234").getData();
-                memberUser3.setRefreshToken("user3");
-
-                Member memberUser4 = memberService.join("user4", "1234").getData();
-                memberUser4.setRefreshToken("user4");
-
-                postService.write(memberUser1, "제목 1", "내용 1", true);
-                postService.write(memberUser1, "제목 2", "내용 2", true);
-                postService.write(memberUser1, "제목 3", "내용 3", false);
-                postService.write(memberUser1, "제목 4", "내용 4", true);
-
-                postService.write(memberUser2, "제목 5", "내용 5", true);
-                postService.write(memberUser2, "제목 6", "내용 6", false);
-
-                IntStream.rangeClosed(7, 150).forEach(i -> {
-                    postService.write(memberUser3, "제목 " + i, "내용 " + i, true);
-                });
-            }
+        return args -> {
+            createSampleUsers();
+            createSamplePosts();
         };
     }
+
+    @Transactional
+    public void createSampleUsers() {
+        for (int i = 1; i <= 4; i++) {
+            String username = "user" + i;
+            memberService.join(username, "1234");
+        }
+    }
+
+    @Transactional
+    public void createSamplePosts() {
+        for (int i = 1; i <= 4; i++) {
+            String username = "user" + i;
+            Member member = memberService.findByUsername(username).orElse(null);
+
+            if (member != null) {
+                for (int j = 1; j <= 100; j++) {
+                    postService.write(member, "제목 " + j, "내용 " + j, true);
+                }
+            }
+        }
+    }
 }
+

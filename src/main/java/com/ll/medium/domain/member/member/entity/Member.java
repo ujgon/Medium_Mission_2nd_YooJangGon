@@ -35,6 +35,7 @@ public class Member {
     private String password;
     @Column(unique = true)
     private String refreshToken;
+    private boolean isPaid; //유료회원 여부
 
     @Transient
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -50,10 +51,13 @@ public class Member {
 
         authorities.add("ROLE_MEMBER");
 
-        if (List.of("system", "admin").contains(username)) {
-            authorities.add("ROLE_ADMIN");
-        }
+        if (isPaid) {
+            authorities.add("ROLE_PAID");
 
+            if (List.of("system", "admin").contains(username)) {
+                authorities.add("ROLE_ADMIN");
+            }
+        }
         return authorities;
     }
 }
